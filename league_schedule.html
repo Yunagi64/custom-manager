@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>リーグ戦スケジュール 2026</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    background: #111214;
+    color: #e0ddd6;
+    padding: 3rem 1.5rem 5rem;
+    min-height: 100vh;
+  }
+
+  header { text-align: center; margin-bottom: 3rem; }
+  header h1 { font-size: 11px; font-weight: 400; letter-spacing: 0.3em; text-transform: uppercase; color: #555; margin-bottom: 0.6rem; }
+  header p { font-size: 26px; font-weight: 300; color: #c8c4bb; letter-spacing: 0.08em; }
+  .header-divider { width: 36px; height: 1px; background: #2e2e2e; margin: 1.2rem auto 0; }
+
+  .container { max-width: 960px; margin: 0 auto; }
+
+  .section-title { font-size: 9px; letter-spacing: 0.25em; color: #444; text-transform: uppercase; margin-bottom: 14px; }
+
+  /* ── Standings ── */
+  .standings { margin-bottom: 3rem; }
+  .standings-table { width: 100%; border: 1px solid #1e1f22; border-radius: 4px; overflow: hidden; }
+  .standings-head {
+    display: grid; grid-template-columns: 32px 1fr 56px 64px 52px;
+    background: #17181b; border-bottom: 1px solid #1e1f22; padding: 8px 16px;
+  }
+  .standings-head span { font-size: 9px; letter-spacing: 0.2em; color: #444; text-transform: uppercase; }
+  .standings-head span:not(:first-child):not(:nth-child(2)) { text-align: center; }
+  .standings-row {
+    display: grid; grid-template-columns: 32px 1fr 56px 64px 52px;
+    align-items: center; padding: 10px 16px;
+    border-bottom: 1px solid #1a1b1e; background: #16171a;
+    border-left: 2px solid transparent; transition: background 0.12s;
+  }
+  .standings-row:last-child { border-bottom: none; }
+  .standings-row:hover { background: #1b1c20; }
+  .s-rank { font-size: 12px; color: #444; }
+  .standings-row.rank-1 .s-rank { color: #c0a020; }
+  .standings-row.rank-2 .s-rank { color: #8090a0; }
+  .standings-row.rank-3 .s-rank { color: #9a6e3a; }
+  .s-team { font-size: 13px; color: #c0bdb6; }
+  .s-pts { font-size: 16px; font-weight: 300; color: #88b8e8; text-align: center; }
+  .s-wl { font-size: 11px; color: #666; text-align: center; font-variant-numeric: tabular-nums; }
+  .s-played { font-size: 11px; color: #444; text-align: center; }
+  .tc-a .team-card-header, .s-tc-a { border-left-color: #2a4860 !important; }
+  .tc-b .team-card-header, .s-tc-b { border-left-color: #264830 !important; }
+  .tc-c .team-card-header, .s-tc-c { border-left-color: #604820 !important; }
+  .tc-d .team-card-header, .s-tc-d { border-left-color: #602828 !important; }
+  .tc-e .team-card-header, .s-tc-e { border-left-color: #382870 !important; }
+  .tc-f .team-card-header, .s-tc-f { border-left-color: #285858 !important; }
+
+  /* ── Week blocks ── */
+  .weeks { margin-bottom: 3rem; }
+  .week-block { margin-bottom: 10px; }
+  .week-header {
+    display: grid; grid-template-columns: 60px 1fr auto; align-items: center; gap: 12px;
+    background: #17181b; border: 1px solid #1e1f22; border-bottom: none;
+    border-radius: 4px 4px 0 0; padding: 10px 16px;
+  }
+  .week-num { font-size: 10px; letter-spacing: 0.2em; color: #555; text-transform: uppercase; }
+  .week-range { font-size: 12px; color: #888; }
+  .match-count { font-size: 11px; color: #444; }
+  .matches { border: 1px solid #1e1f22; border-radius: 0 0 4px 4px; overflow: hidden; }
+
+  .match-block { border-bottom: 1px solid #1a1b1e; background: #16171a; transition: background 0.12s; }
+  .match-block:last-child { border-bottom: none; }
+  .match-block:hover { background: #1b1c20; }
+
+  /* ── Match header (always shown) ── */
+  .mc-header {
+    display: grid; grid-template-columns: 22px 1fr auto;
+    align-items: center; gap: 10px; padding: 10px 16px;
+  }
+  .mc-num { font-size: 10px; color: #2e2e2e; }
+  .mc-matchup { font-size: 13px; color: #c0bdb6; }
+  .mc-matchup .sep { color: #2e2e2e; margin: 0 8px; font-size: 11px; }
+  .bo2-tag { font-size: 9px; color: #333; letter-spacing: 0.12em; }
+  .mc-score { font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .mc-score .hi { color: #88b8e8; }
+  .mc-score .lo { color: #383838; }
+  .mc-score .sep { color: #2e2e2e; margin: 0 5px; }
+
+  /* ── Game rows (shown when results exist) ── */
+  .mc-games {
+    background: #131415; border-top: 1px solid #1a1b1e;
+    padding: 8px 16px 10px 16px; border-left: 2px solid #222428;
+  }
+  .mc-game {
+    display: grid;
+    grid-template-columns: 46px 80px 22px 80px 54px 1fr;
+    align-items: center; column-gap: 8px; padding: 5px 0;
+  }
+  .g-num    { font-size: 9px; letter-spacing: 0.1em; color: #383838; }
+  .g-winner { font-size: 11px; color: #c0bdb6; }
+  .g-loser  { font-size: 11px; color: #2e2e2e; }
+  .g-team-left { text-align: right; }
+  .g-vs     { font-size: 9px; color: #252525; text-align: center; }
+  .g-time   { font-size: 11px; color: #4a4a4e; font-variant-numeric: tabular-nums; padding-left: 12px; }
+  .g-bonus {
+    justify-self: start; padding-left: 10px;
+    font-size: 8px; letter-spacing: 0.1em; color: #c0a020;
+    background: #1e1c10; border: 1px solid #3a3010;
+    border-radius: 2px; padding: 1px 6px;
+  }
+
+  /* ── Final ── */
+  .final-block { margin-bottom: 3rem; }
+  .final-header {
+    display: grid; grid-template-columns: 60px 1fr; align-items: center; gap: 12px;
+    background: #1a1e2a; border: 1px solid #2a3a5a; border-bottom: none;
+    border-radius: 4px 4px 0 0; padding: 10px 16px;
+  }
+  .final-label { font-size: 10px; letter-spacing: 0.2em; color: #5a80b8; text-transform: uppercase; }
+  .final-date { font-size: 12px; color: #6890d8; }
+  .final-card {
+    background: #16171a; border: 1px solid #2a3a5a; border-radius: 0 0 4px 4px;
+    padding: 24px 20px; display: grid; grid-template-columns: 1fr 48px 1fr; align-items: center; gap: 12px;
+  }
+  .final-team { font-size: 15px; font-weight: 300; color: #c0bdb6; }
+  .final-team.right { text-align: right; }
+  .final-sub { font-size: 10px; color: #444; letter-spacing: 0.08em; margin-top: 4px; }
+  .final-sub.right { text-align: right; }
+  .final-vs-col { text-align: center; }
+  .final-vs { font-size: 12px; color: #2a3a5a; letter-spacing: 0.1em; }
+
+  /* ── Team schedule ── */
+  .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 3rem; }
+  .team-card { background: #16171a; border: 1px solid #1e1f22; border-radius: 4px; overflow: hidden; }
+  .team-card-header {
+    padding: 10px 14px 8px; border-bottom: 1px solid #1e1f22; background: #17181b;
+    display: flex; justify-content: space-between; align-items: center;
+    border-left: 2px solid transparent;
+  }
+  .team-card-name { font-size: 16px; font-weight: 300; color: #b0aca4; }
+  .team-pts-tag { font-size: 13px; font-weight: 300; color: #88b8e8; }
+  .team-card-body { padding: 8px 0; }
+  .team-match-row {
+    display: grid; grid-template-columns: auto 18px 1fr auto;
+    align-items: center; gap: 6px; padding: 5px 14px;
+    border-bottom: 1px solid #1a1b1e;
+  }
+  .team-match-row:last-child { border-bottom: none; }
+  .tm-week { font-size: 9px; letter-spacing: 0.05em; color: #444; background: #1c1d20; border: 1px solid #252528; border-radius: 2px; padding: 1px 5px; text-align: center; white-space: nowrap; }
+  .tm-vs { font-size: 9px; color: #333; }
+  .tm-opp { font-size: 12px; color: #c0bdb6; }
+  .tm-pts { font-size: 10px; color: #555; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tm-pts.win { color: #88b8e8; }
+
+  footer { text-align: center; font-size: 10px; letter-spacing: 0.2em; color: #2e2e2e; text-transform: uppercase; margin-top: 1rem; }
+
+  /* ── Nav ── */
+  .site-nav {
+    display: flex; justify-content: center; gap: 6px;
+    margin-bottom: 2.5rem;
+  }
+  .nav-btn {
+    font-family: inherit; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 6px 18px; border-radius: 3px; border: 1px solid #2a2a2e;
+    background: #1c1d20; color: #555; cursor: pointer; text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .nav-btn:hover { background: #222428; color: #999; border-color: #383838; }
+  .nav-btn.active { background: #1e2530; color: #88b8e8; border-color: #2a4060; cursor: default; }
+
+
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <span class="nav-btn active">スケジュール</span>
+  <a class="nav-btn" href="team_draft.html">チーム詳細</a>
+</nav>
+
+<header>
+  <h1>League of Legends</h1>
+  <p>リーグ戦スケジュール</p>
+  <div class="header-divider"></div>
+</header>
+
+<div class="container" id="root"></div>
+
+<footer>Season 2026 &nbsp;·&nbsp; 6 Teams &nbsp;·&nbsp; 15 Matches + Final</footer>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  ★ 試合結果はここを編集してください
+// ════════════════════════════════════════════════════════
+//  キー  : 試合番号 (1〜15)
+//  g1/g2 : { winner: 1 または 2, time: 'MM:SS' }
+//    winner 1 = 対戦カードの左チーム
+//    winner 2 = 対戦カードの右チーム
+//    time    = 試合時間（例: '28:30'）
+//
+//  ポイント:
+//    g1勝利 → 1pt  /  g2勝利 → 1pt
+//    ボーナス1pt → 両ゲーム終了後、勝利ゲームの試合時間が短い方のチームへ
+// ════════════════════════════════════════════════════════
+const RESULTS = {
+  // 例（コメントを外して使用）:
+  1: { g1: { winner: 1, time: '28:30' }, g2: { winner: 2, time: '35:12' } },
+  2: { g1: { winner: 1, time: '22:45' }, g2: { winner: 1, time: '31:00' } },
+};
+// ════════════════════════════════════════════════════════
+
+const DAY = ['日','月','火','水','木','金','土'];
+const fmt = d => `${d.getMonth()+1}/${d.getDate()}（${DAY[d.getDay()]}）`;
+const fmtShort = d => `${d.getMonth()+1}/${d.getDate()}`;
+const toSec = t => { const [m,s] = t.split(':').map(Number); return m*60+s; };
+
+const weeks = [
+  { s: new Date(2026,3,6),  e: new Date(2026,3,12) },
+  { s: new Date(2026,3,13), e: new Date(2026,3,19) },
+  { s: new Date(2026,3,20), e: new Date(2026,3,26) },
+  { s: new Date(2026,3,27), e: new Date(2026,4,3)  },
+  { s: new Date(2026,4,4),  e: new Date(2026,4,9)  },
+];
+const finalDay = new Date(2026,4,10);
+
+const SCHED = [
+  { w: weeks[0], matches:[['A','B'],['C','D'],['E','F']] },
+  { w: weeks[1], matches:[['A','C'],['B','E'],['D','F']] },
+  { w: weeks[2], matches:[['A','D'],['B','F'],['C','E']] },
+  { w: weeks[3], matches:[['A','E'],['C','F'],['B','D']] },
+  { w: weeks[4], matches:[['A','F'],['B','C'],['D','E']] },
+];
+const TEAMS = ['A','B','C','D','E','F'];
+const TC = { A:'a', B:'b', C:'c', D:'d', E:'e', F:'f' };
+
+// Flat match list
+const MATCHES = [];
+let mid = 0;
+SCHED.forEach((wd, wi) => {
+  wd.matches.forEach(m => {
+    MATCHES.push({ id: ++mid, week: wi+1, teams: m, wd });
+  });
+});
+
+// ── Points for a single match ──
+function matchResult(matchId, teams) {
+  const r = RESULTS[matchId];
+  if (!r || (!r.g1 && !r.g2)) return null;
+
+  const pts = { [teams[0]]: 0, [teams[1]]: 0 };
+  const winTimes = { [teams[0]]: [], [teams[1]]: [] };
+
+  [r.g1, r.g2].forEach(g => {
+    if (!g) return;
+    const w = teams[g.winner - 1];
+    pts[w]++;
+    if (g.time) winTimes[w].push(toSec(g.time));
+  });
+
+  let bonusTeam = null;
+  if (r.g1 && r.g2) {
+    const minA = winTimes[teams[0]].length ? Math.min(...winTimes[teams[0]]) : Infinity;
+    const minB = winTimes[teams[1]].length ? Math.min(...winTimes[teams[1]]) : Infinity;
+    if      (minA < minB) { pts[teams[0]]++; bonusTeam = teams[0]; }
+    else if (minB < minA) { pts[teams[1]]++; bonusTeam = teams[1]; }
+  }
+
+  return { pts, bonusTeam, winTimes };
+}
+
+// ── Standings ──
+function buildStandings() {
+  const s = {};
+  TEAMS.forEach(t => s[t] = { pts: 0, gw: 0, gl: 0, played: 0 });
+  MATCHES.forEach(m => {
+    const r = RESULTS[m.id];
+    if (!r) return;
+    const res = matchResult(m.id, m.teams);
+    if (!res) return;
+    m.teams.forEach(t => s[t].played++);
+    [r.g1, r.g2].forEach(g => {
+      if (!g) return;
+      s[m.teams[g.winner - 1]].gw++;
+      s[m.teams[2 - g.winner]].gl++;
+    });
+    m.teams.forEach(t => { s[t].pts += res.pts[t]; });
+  });
+  return TEAMS.map(t => ({ team: t, ...s[t] }))
+    .sort((a, b) => b.pts - a.pts || b.gw - a.gw || TEAMS.indexOf(a.team) - TEAMS.indexOf(b.team));
+}
+
+const root = document.getElementById('root');
+const standings = buildStandings();
+
+// ── Standings table ──
+const standDiv = document.createElement('div');
+standDiv.className = 'standings';
+standDiv.innerHTML = '<div class="section-title">順位表</div>';
+
+const stTable = document.createElement('div');
+stTable.className = 'standings-table';
+stTable.innerHTML = `<div class="standings-head">
+  <span>#</span><span>チーム</span><span>PT</span><span>W / L</span><span>試合</span>
+</div>`;
+
+standings.forEach((s, i) => {
+  const row = document.createElement('div');
+  const rankCls = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+  row.className = `standings-row s-tc-${TC[s.team]} ${rankCls}`;
+  row.innerHTML = `
+    <span class="s-rank">${i + 1}</span>
+    <span class="s-team">チーム ${s.team}</span>
+    <span class="s-pts">${s.pts}</span>
+    <span class="s-wl">${s.gw} / ${s.gl}</span>
+    <span class="s-played">${s.played}</span>
+  `;
+  stTable.appendChild(row);
+});
+standDiv.appendChild(stTable);
+root.appendChild(standDiv);
+
+// ── Schedule ──
+const weeksDiv = document.createElement('div');
+weeksDiv.className = 'weeks';
+weeksDiv.innerHTML = '<div class="section-title">リーグ戦 — 週間対戦カード</div>';
+
+let mNum = 0;
+SCHED.forEach((wd, wi) => {
+  const block = document.createElement('div');
+  block.className = 'week-block';
+  block.innerHTML = `<div class="week-header">
+    <span class="week-num">Week ${wi+1}</span>
+    <span class="week-range">${fmt(wd.w.s)} 〜 ${fmt(wd.w.e)}</span>
+    <span class="match-count">${wd.matches.length}試合</span>
+  </div>`;
+
+  const matchesDiv = document.createElement('div');
+  matchesDiv.className = 'matches';
+
+  wd.matches.forEach(m => {
+    mNum++;
+    const r = RESULTS[mNum];
+    const res = r ? matchResult(mNum, m) : null;
+
+    const mb = document.createElement('div');
+    mb.className = 'match-block';
+
+    // ── Header (always shown) ──
+    const pa = res ? res.pts[m[0]] : null;
+    const pb = res ? res.pts[m[1]] : null;
+    const scoreHtml = res
+      ? `<span class="mc-score"><span class="${pa > pb ? 'hi' : 'lo'}">${pa}</span><span class="sep">—</span><span class="${pb > pa ? 'hi' : 'lo'}">${pb}</span></span>`
+      : `<span class="bo2-tag">BO2</span>`;
+
+    mb.innerHTML = `<div class="mc-header">
+      <span class="mc-num">${mNum}</span>
+      <span class="mc-matchup">チーム ${m[0]}<span class="sep">vs</span>チーム ${m[1]}</span>
+      ${scoreHtml}
+    </div>`;
+
+    // ── Game rows (only when results exist) ──
+    if (res && r) {
+      const gamesDiv = document.createElement('div');
+      gamesDiv.className = 'mc-games';
+
+      [r.g1, r.g2].forEach((g, gi) => {
+        if (!g) return;
+        const winner = m[g.winner - 1];
+        const isBonus = res.bonusTeam === winner && g.time &&
+          toSec(g.time) === Math.min(...res.winTimes[winner]);
+        const aWon = g.winner === 1;
+
+        const row = document.createElement('div');
+        row.className = 'mc-game';
+        row.innerHTML = `
+          <span class="g-num">Game ${gi + 1}</span>
+          <span class="${aWon ? 'g-winner' : 'g-loser'} g-team-left">チーム ${m[0]}</span>
+          <span class="g-vs">vs</span>
+          <span class="${aWon ? 'g-loser' : 'g-winner'}">チーム ${m[1]}</span>
+          <span class="g-time">${g.time}</span>
+          ${isBonus ? '<span class="g-bonus">TIME BONUS  +1 pt</span>' : ''}
+        `;
+        gamesDiv.appendChild(row);
+      });
+
+      mb.appendChild(gamesDiv);
+    }
+
+    matchesDiv.appendChild(mb);
+  });
+
+  block.appendChild(matchesDiv);
+  weeksDiv.appendChild(block);
+});
+root.appendChild(weeksDiv);
+
+// ── Final ──
+const finalDiv = document.createElement('div');
+finalDiv.className = 'final-block';
+finalDiv.innerHTML = '<div class="section-title">決勝戦</div>';
+finalDiv.insertAdjacentHTML('beforeend', `
+  <div class="final-header">
+    <span class="final-label">決勝</span>
+    <span class="final-date">${fmt(finalDay)}</span>
+  </div>
+  <div class="final-card">
+    <div>
+      <div class="final-team right">リーグ 1位</div>
+      <div class="final-sub right">1st place</div>
+    </div>
+    <div class="final-vs-col"><div class="final-vs">VS</div></div>
+    <div>
+      <div class="final-team">リーグ 2位</div>
+      <div class="final-sub">2nd place</div>
+    </div>
+  </div>
+`);
+root.appendChild(finalDiv);
+
+// ── Team schedule ──
+const tsDiv = document.createElement('div');
+tsDiv.innerHTML = '<div class="section-title">チーム別対戦スケジュール</div>';
+
+const tgDiv = document.createElement('div');
+tgDiv.className = 'team-grid';
+
+const teamMatchMap = {};
+TEAMS.forEach(t => teamMatchMap[t] = []);
+MATCHES.forEach(m => {
+  teamMatchMap[m.teams[0]].push({ week: m.week, opp: m.teams[1], id: m.id });
+  teamMatchMap[m.teams[1]].push({ week: m.week, opp: m.teams[0], id: m.id });
+});
+
+TEAMS.forEach(t => {
+  const ts = standings.find(s => s.team === t);
+  const card = document.createElement('div');
+  card.className = `team-card tc-${TC[t]}`;
+
+  const rows = teamMatchMap[t].map(g => {
+    const match = MATCHES.find(m => m.id === g.id);
+    const res = matchResult(g.id, match.teams);
+    let ptStr = '';
+    if (res) {
+      const my = res.pts[t], op = res.pts[g.opp];
+      ptStr = `<span class="tm-pts${my > op ? ' win' : ''}">${my}–${op}</span>`;
+    }
+    return `<div class="team-match-row">
+      <span class="tm-week">Week ${g.week}</span>
+      <span class="tm-vs">vs</span>
+      <span class="tm-opp">チーム ${g.opp}</span>
+      ${ptStr}
+    </div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="team-card-header">
+      <span class="team-card-name">チーム ${t}</span>
+      <span class="team-pts-tag">${ts.pts} pt</span>
+    </div>
+    <div class="team-card-body">${rows}</div>
+  `;
+  tgDiv.appendChild(card);
+});
+
+tsDiv.appendChild(tgDiv);
+root.appendChild(tsDiv);
+
+</script>
+</body>
+</html>

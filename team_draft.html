@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>チーム分け</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    background: #111214;
+    color: #e0ddd6;
+    padding: 3rem 1.5rem 7rem;
+    min-height: 100vh;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  header h1 {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 0.6rem;
+  }
+  header p {
+    font-size: 26px;
+    font-weight: 300;
+    color: #c8c4bb;
+    letter-spacing: 0.35em;
+  }
+  .header-divider {
+    width: 36px;
+    height: 1px;
+    background: #2e2e2e;
+    margin: 1.2rem auto 0;
+  }
+
+  /* ── Unassigned area ── */
+  .unassigned-section {
+    max-width: 1300px;
+    margin: 0 auto 2.5rem;
+  }
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: #444;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .unassigned-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 58px;
+    padding: 12px;
+    border: 1px dashed #2a2a2e;
+    border-radius: 6px;
+    background: #131416;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .unassigned-pool.drag-over {
+    border-color: #3a5a80;
+    background: #14192a;
+  }
+  .unassigned-pool:empty::after {
+    content: 'すべてのプレイヤーが割り当て済みです';
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: #333;
+    align-self: center;
+    margin: auto;
+  }
+
+  /* ── Player card (unassigned) ── */
+  .player-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    background: #1c1d20;
+    border: 1px solid #2a2a2e;
+    border-radius: 4px;
+    cursor: default;
+    user-select: none;
+    transition: background 0.12s, opacity 0.15s, border-color 0.12s;
+  }
+  .card-name {
+    font-size: 13px;
+    color: #c0bdb6;
+    white-space: nowrap;
+  }
+  .card-rank {
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    max-height: 16px;
+    opacity: 1;
+    transition: max-height 0.25s, opacity 0.2s;
+  }
+  .card-rank.hidden { max-height: 0; opacity: 0; }
+  .card-pt {
+    font-size: 11px;
+    color: #444;
+    overflow: hidden;
+    max-height: 16px;
+    opacity: 1;
+    transition: max-height 0.25s, opacity 0.2s;
+  }
+  .card-pt.hidden { max-height: 0; opacity: 0; }
+
+  /* ── Team grid ── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    max-width: 1300px;
+    margin: 0 auto;
+    background: #1e1e20;
+    border: 1px solid #1e1e20;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .team-card { background: #16171a; }
+
+  .team-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid #1e1f22;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-left: 2px solid transparent;
+  }
+  .t1 .team-header { border-left-color: #2a4860; }
+  .t2 .team-header { border-left-color: #264830; }
+  .t3 .team-header { border-left-color: #604820; }
+  .t4 .team-header { border-left-color: #602828; }
+  .t5 .team-header { border-left-color: #382870; }
+  .t6 .team-header { border-left-color: #285858; }
+
+  .team-label-sm {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    color: #454545;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .team-num {
+    font-size: 20px;
+    font-weight: 300;
+    color: #b0aca4;
+  }
+  .leader-tag {
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    padding: 1px 6px;
+    border-radius: 2px;
+    background: #2a2418;
+    color: #c0a020;
+    border: 1px solid #3a3010;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .total-block { text-align: right; }
+  .total-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: #444;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    overflow: hidden;
+    max-height: 16px;
+    opacity: 1;
+    transition: max-height 0.25s, opacity 0.2s;
+  }
+  .total-label.hidden { max-height: 0; opacity: 0; margin-bottom: 0; }
+  .total-num {
+    font-size: 18px;
+    font-weight: 300;
+    color: #666;
+    overflow: hidden;
+    max-height: 28px;
+    opacity: 1;
+    transition: max-height 0.25s, opacity 0.2s;
+  }
+  .total-num.hidden { max-height: 0; opacity: 0; }
+
+  /* ── Role slot ── */
+  .role-slot {
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 18px;
+    border-bottom: 1px solid #1a1b1e;
+    min-height: 42px;
+    transition: background 0.15s;
+  }
+  .role-slot:last-child { border-bottom: none; }
+  .role-slot.drag-over { background: #1a2232; }
+
+  .role-badge {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-align: center;
+    padding: 3px 0;
+    border-radius: 2px;
+    align-self: center;
+    flex-shrink: 0;
+  }
+  .role-badge.top { background: #182230; color: #4e8099; }
+  .role-badge.jg  { background: #182618; color: #4e8860; }
+  .role-badge.mid { background: #221830; color: #8060a8; }
+  .role-badge.adc { background: #281e10; color: #a07030; }
+  .role-badge.sup { background: #142428; color: #408888; }
+
+  /* player inside slot */
+  .slot-player {
+    display: contents;
+  }
+  .slot-empty .player-info::before {
+    content: '—';
+    font-size: 12px;
+    color: #2e2e2e;
+  }
+
+  .player-info { min-width: 0; }
+  .player-name {
+    font-size: 13px;
+    font-weight: 400;
+    color: #c0bdb6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .player-rank {
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    letter-spacing: 0.05em;
+    margin-top: 3px;
+    overflow: hidden;
+    max-height: 18px;
+    opacity: 1;
+    transition: max-height 0.25s, opacity 0.2s, margin-top 0.25s;
+  }
+  .player-rank.hidden { max-height: 0; opacity: 0; margin-top: 0; }
+  .rank-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .right-col { display: flex; flex-direction: column; align-items: flex-end; }
+  .rank-pt {
+    font-size: 12px;
+    font-weight: 300;
+    color: #555;
+    overflow: hidden;
+    max-height: 20px;
+    opacity: 1;
+    transition: max-height 0.25s, opacity 0.2s;
+  }
+  .rank-pt.hidden { max-height: 0; opacity: 0; }
+
+  /* rank colors */
+  .c-iron    { color: #7a6a64; } .d-iron    { background: #7a6a64; }
+  .c-bronze  { color: #9a6e3a; } .d-bronze  { background: #9a6e3a; }
+  .c-silver  { color: #8090a0; } .d-silver  { background: #8090a0; }
+  .c-gold    { color: #c0a020; } .d-gold    { background: #c0a020; }
+  .c-plat    { color: #40aca8; } .d-plat    { background: #40aca8; }
+  .c-emerald { color: #38b060; } .d-emerald { background: #38b060; }
+  .c-diamond { color: #5878e0; } .d-diamond { background: #5878e0; }
+  .c-master  { color: #b858d0; } .d-master  { background: #b858d0; }
+  .c-gm      { color: #e03838; } .d-gm      { background: #e03838; }
+  .c-chall   { color: #e8c030; } .d-chall   { background: #e8c030; }
+
+  /* ── Toggle panel ── */
+  .toggle-panel {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
+  }
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #1c1d20;
+    border: 1px solid #2a2a2e;
+    border-radius: 99px;
+    padding: 7px 14px 7px 12px;
+    cursor: default;
+    pointer-events: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .toggle-track {
+    width: 28px; height: 16px; border-radius: 99px;
+    background: #2a2a2e; position: relative; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle-track.on { background: #3a5a80; }
+  .toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #555; transition: transform 0.2s, background 0.2s;
+  }
+  .toggle-track.on .toggle-thumb { transform: translateX(12px); background: #88b8e8; }
+  .toggle-label {
+    font-size: 10px; letter-spacing: 0.15em; color: #555;
+    text-transform: uppercase; white-space: nowrap; transition: color 0.2s;
+    min-width: 72px; text-align: right;
+  }
+  .toggle-row.on .toggle-label { color: #88b8e8; }
+
+  footer {
+    text-align: center; margin-top: 3rem;
+    font-size: 10px; letter-spacing: 0.2em; color: #2e2e2e; text-transform: uppercase;
+  }
+
+  /* ── Nav ── */
+  .site-nav {
+    display: flex; justify-content: center; gap: 6px;
+    margin-bottom: 2.5rem;
+  }
+  .nav-btn {
+    font-family: inherit; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 6px 18px; border-radius: 3px; border: 1px solid #2a2a2e;
+    background: #1c1d20; color: #555; cursor: pointer; text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .nav-btn:hover { background: #222428; color: #999; border-color: #383838; }
+  .nav-btn.active { background: #1e2530; color: #88b8e8; border-color: #2a4060; cursor: default; }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="nav-btn" href="league_schedule.html">スケジュール</a>
+  <span class="nav-btn active">チーム詳細</span>
+</nav>
+
+<header>
+  <h1>League of Legends</h1>
+  <p>チーム分け</p>
+  <div class="header-divider"></div>
+</header>
+
+<div class="unassigned-section">
+  <div class="section-label">未割り当て — <span id="unassigned-count">25</span> players</div>
+  <div class="unassigned-pool" id="unassigned-pool"></div>
+</div>
+
+<div class="team-grid" id="team-grid"></div>
+
+<footer>Team Draft &nbsp;·&nbsp; 6 Teams &nbsp;·&nbsp; 30 Players</footer>
+
+<div class="toggle-panel">
+  <div class="toggle-row on" id="toggle-total">
+    <span class="toggle-label">Total Pt</span>
+    <div class="toggle-track on"><div class="toggle-thumb"></div></div>
+  </div>
+  <div class="toggle-row on" id="toggle-pt">
+    <span class="toggle-label">Player Pt</span>
+    <div class="toggle-track on"><div class="toggle-thumb"></div></div>
+  </div>
+  <div class="toggle-row on" id="toggle-rank">
+    <span class="toggle-label">Rank</span>
+    <div class="toggle-track on"><div class="toggle-thumb"></div></div>
+  </div>
+</div>
+
+<script>
+const PLAYERS = [
+  { name:'ぱと',    rankClass:'emerald', rankName:'Emerald',     pt:6 },
+  { name:'ゆぶん',  rankClass:'gold',    rankName:'Gold',        pt:4 },
+  { name:'とり',    rankClass:'gm',      rankName:'GrandMaster', pt:9 },
+  { name:'せな',    rankClass:'bronze',  rankName:'Bronze',      pt:2 },
+  { name:'すし',    rankClass:'gold',    rankName:'Gold',        pt:4 },
+  { name:'れーにん',rankClass:'silver',  rankName:'Silver',      pt:3 },
+  { name:'えと',    rankClass:'plat',    rankName:'Platinum',    pt:5 },
+  { name:'うまる',  rankClass:'diamond', rankName:'Diamond',     pt:7 },
+  { name:'らき',    rankClass:'silver',  rankName:'Silver',      pt:3 },
+  { name:'あきつき',rankClass:'diamond', rankName:'Diamond',     pt:7 },
+  { name:'しおたつ',rankClass:'diamond', rankName:'Diamond',     pt:7 },
+  { name:'社長',    rankClass:'silver',  rankName:'Silver',      pt:3 },
+  { name:'うなぎ',  rankClass:'emerald', rankName:'Emerald',     pt:6 },
+  { name:'ブライト',rankClass:'diamond', rankName:'Diamond',     pt:7 },
+  { name:'えび',    rankClass:'gold',    rankName:'Gold',        pt:4 },
+  { name:'そや',    rankClass:'plat',    rankName:'Platinum',    pt:5 },
+  { name:'なぎ',    rankClass:'silver',  rankName:'Silver',      pt:3 },
+  { name:'くろあ',  rankClass:'plat',    rankName:'Platinum',    pt:5 },
+  { name:'こね',    rankClass:'master',  rankName:'Master',      pt:8 },
+  { name:'ふぃーと',rankClass:'emerald', rankName:'Emerald',     pt:6 },
+  { name:'七海',    rankClass:'emerald', rankName:'Emerald',     pt:6 },
+  { name:'あき',    rankClass:'bronze',  rankName:'Bronze',      pt:2 },
+  { name:'しげちー',rankClass:'plat',    rankName:'Platinum',    pt:5 },
+  { name:'しゃけ',  rankClass:'gm',      rankName:'GrandMaster', pt:9 },
+  { name:'ゆよん',  rankClass:'plat',    rankName:'Platinum',    pt:5 },
+  { name:'いろみや',rankClass:'emerald', rankName:'Emerald',     pt:6 },
+  { name:'しら',    rankClass:'emerald', rankName:'Emerald',     pt:6 },
+  { name:'jaki',   rankClass:'master',  rankName:'Master',      pt:8 },
+  { name:'あずにゃん',rankClass:'iron',  rankName:'Iron',        pt:1 },
+  { name:'たっきょ', rankClass:'silver', rankName:'Silver',      pt:3 },
+];
+
+const LEADERS = new Set(['うまる','あきつき','うなぎ','そや','とり','いろみや']);
+const ROLES = ['top','jg','mid','adc','sup'];
+const TEAMS = 6;
+const TEAM_NAMES = ['A','B','C','D','E','F'];
+const state = { total:true, pt:true, rank:true };
+
+// ── Build unassigned card ──
+function makeCard(p) {
+  const el = document.createElement('div');
+  el.className = 'player-card';
+  Object.assign(el.dataset, { name: p.name, rankClass: p.rankClass, rankName: p.rankName, pt: p.pt });
+  el.innerHTML = `
+    <span class="card-name">${p.name}</span>
+    ${LEADERS.has(p.name) ? '<span class="leader-tag">LEADER</span>' : ''}
+    <span class="card-rank${state.rank ? '' : ' hidden'}">
+      <span class="rank-dot d-${p.rankClass}"></span>
+      <span class="c-${p.rankClass}">${p.rankName}</span>
+    </span>
+    <span class="card-pt${state.pt ? '' : ' hidden'}">${p.pt}</span>
+  `;
+  return el;
+}
+
+// ── Render player info inside a slot ──
+function fillSlot(slot, data) {
+  slot.classList.remove('slot-empty');
+  slot.dataset.name      = data.name;
+  slot.dataset.rankClass = data.rankClass;
+  slot.dataset.rankName  = data.rankName;
+  slot.dataset.pt        = data.pt;
+  slot.querySelector('.player-info').innerHTML = `
+    <div class="player-name">${data.name}${LEADERS.has(data.name) ? ' <span class="leader-tag">LEADER</span>' : ''}</div>
+    <div class="player-rank${state.rank ? '' : ' hidden'}">
+      <span class="rank-dot d-${data.rankClass}"></span>
+      <span class="c-${data.rankClass}">${data.rankName}</span>
+    </div>
+  `;
+  slot.querySelector('.right-col').innerHTML =
+    `<span class="rank-pt${state.pt ? '' : ' hidden'}">${data.pt}</span>`;
+}
+
+function clearSlot(slot) {
+  slot.classList.add('slot-empty');
+  delete slot.dataset.name;
+  delete slot.dataset.rankClass;
+  delete slot.dataset.rankName;
+  delete slot.dataset.pt;
+  slot.querySelector('.player-info').innerHTML = '';
+  slot.querySelector('.right-col').innerHTML = '';
+}
+
+function slotHasPlayer(slot) { return !slot.classList.contains('slot-empty'); }
+
+// ── Build team card with fixed role slots ──
+function makeTeamCard(idx) {
+  const card = document.createElement('div');
+  card.className = `team-card t${idx}`;
+  const name = TEAM_NAMES[idx - 1];
+  card.innerHTML = `
+    <div class="team-header">
+      <div><div class="team-label-sm">Team</div><div class="team-num">${name}</div></div>
+      <div class="total-block">
+        <div class="total-label${state.total ? '' : ' hidden'}">Total</div>
+        <div class="total-num${state.total ? '' : ' hidden'}" data-total>0</div>
+      </div>
+    </div>
+  `;
+  ROLES.forEach(role => {
+    const slot = document.createElement('div');
+    slot.className = 'role-slot slot-empty';
+    slot.dataset.team = idx;
+    slot.dataset.role = role;
+    slot.innerHTML = `
+      <span class="role-badge ${role}">${role.toUpperCase()}</span>
+      <div class="player-info"></div>
+      <div class="right-col"></div>
+    `;
+
+    card.appendChild(slot);
+  });
+  return card;
+}
+
+const pool = document.getElementById('unassigned-pool');
+
+// ── Toggle ──
+function toggle(key) {
+  state[key] = !state[key];
+  const row = document.getElementById('toggle-' + key);
+  row.classList.toggle('on', state[key]);
+  row.querySelector('.toggle-track').classList.toggle('on', state[key]);
+
+  if (key === 'total') {
+    document.querySelectorAll('[data-total]').forEach(el => el.classList.toggle('hidden', !state[key]));
+    document.querySelectorAll('.total-label').forEach(el => el.classList.toggle('hidden', !state[key]));
+  } else if (key === 'pt') {
+    document.querySelectorAll('.rank-pt, .card-pt').forEach(el => el.classList.toggle('hidden', !state[key]));
+  } else if (key === 'rank') {
+    document.querySelectorAll('.player-rank, .card-rank').forEach(el => el.classList.toggle('hidden', !state[key]));
+  }
+}
+
+function updateTotals() {
+  document.querySelectorAll('.team-card').forEach(card => {
+    let total = 0;
+    card.querySelectorAll('.role-slot:not(.slot-empty)').forEach(s => total += parseInt(s.dataset.pt || 0));
+    card.querySelector('[data-total]').textContent = total;
+  });
+}
+
+function updateUnassignedCount() {
+  document.getElementById('unassigned-count').textContent = pool.querySelectorAll('.player-card').length;
+}
+
+const TEAM_ASSIGNMENTS = [
+  { top: 'しおたつ', jg: 'ゆぶん',   mid: 'うまる',   adc: 'らき',    sup: 'えと'    },
+  { top: 'ぱと',    jg: 'あき',     mid: 'うなぎ',   adc: 'ブライト', sup: 'くろあ'  },
+  { top: 'ふぃーと', jg: 'とり',     mid: '社長',     adc: 'ゆよん',  sup: 'すし'    },
+  { top: '七海',    jg: 'せな',     mid: 'れーにん', adc: 'こね',    sup: 'あきつき' },
+  { top: 'そや',    jg: 'なぎ',     mid: 'しげちー', adc: 'しゃけ',  sup: 'えび'    },
+  { top: 'いろみや', jg: 'しら',    mid: 'jaki',    adc: 'あずにゃん', sup: 'たっきょ' },
+];
+
+// ── Init ──
+const grid = document.getElementById('team-grid');
+const playerMap = Object.fromEntries(PLAYERS.map(p => [p.name, p]));
+const assignedNames = new Set();
+
+for (let i = 1; i <= TEAMS; i++) {
+  const card = makeTeamCard(i);
+  grid.appendChild(card);
+  const assignment = TEAM_ASSIGNMENTS[i - 1];
+  ROLES.forEach(role => {
+    const name = assignment[role];
+    if (name && playerMap[name]) {
+      const slot = card.querySelector(`[data-role="${role}"]`);
+      fillSlot(slot, playerMap[name]);
+      assignedNames.add(name);
+    }
+  });
+}
+
+PLAYERS.filter(p => !assignedNames.has(p.name)).forEach(p => pool.appendChild(makeCard(p)));
+updateTotals();
+updateUnassignedCount();
+</script>
+</body>
+</html>
