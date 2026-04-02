@@ -94,15 +94,17 @@
   }
   .mc-game {
     display: grid;
-    grid-template-columns: 46px 80px 22px 80px 54px 1fr;
+    grid-template-columns: 46px 120px 80px 22px 80px 54px 1fr;
     align-items: center; column-gap: 8px; padding: 5px 0;
   }
   .g-num    { font-size: 9px; letter-spacing: 0.1em; color: #383838; }
   .g-winner { font-size: 11px; color: #c0bdb6; }
   .g-loser  { font-size: 11px; color: #2e2e2e; }
+  .g-pending { font-size: 11px; color: #383838; }
   .g-team-left { text-align: right; }
   .g-vs     { font-size: 9px; color: #252525; text-align: center; }
-  .g-time   { font-size: 11px; color: #4a4a4e; font-variant-numeric: tabular-nums; padding-left: 12px; }
+  .g-time   { font-size: 11px; color: #4a4a4e; font-variant-numeric: tabular-nums; }
+  .g-date   { font-size: 10px; color: #484848; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .g-bonus {
     justify-self: start; padding-left: 10px;
     font-size: 8px; letter-spacing: 0.1em; color: #c0a020;
@@ -205,8 +207,10 @@
 // ════════════════════════════════════════════════════════
 const RESULTS = {
   // 例（コメントを外して使用）:
-  // 1: { g1: { winner: 1, time: '28:30' }, g2: { winner: 2, time: '35:12' } },
-  // 2: { g1: { winner: 1, time: '22:45' }, g2: { winner: 1, time: '31:00' } },
+  // 日程のみ: 1: { g1: { date: '4/6（月） 20:00' }, g2: { date: '4/8（水） 20:00' } },
+  // 結果あり: 1: { g1: { winner: 1, time: '28:30', date: '4/6（月） 20:00' }, g2: { winner: 2, time: '35:12', date: '4/8（水） 20:00' } },
+  2: { g1: { date: '4/12（日） 22:00～' }, g2: { date: '4/12（日） 23:00～' } },
+  3: { g1: { date: '4/7（木） 22:00～' }, g2: { date: '4/11（土） 23:00～' } },
 };
 // ════════════════════════════════════════════════════════
 
@@ -247,19 +251,21 @@ SCHED.forEach((wd, wi) => {
 function matchResult(matchId, teams) {
   const r = RESULTS[matchId];
   if (!r || (!r.g1 && !r.g2)) return null;
+  const hasAnyResult = (r.g1 && r.g1.winner != null) || (r.g2 && r.g2.winner != null);
+  if (!hasAnyResult) return null;
 
   const pts = { [teams[0]]: 0, [teams[1]]: 0 };
   const winTimes = { [teams[0]]: [], [teams[1]]: [] };
 
   [r.g1, r.g2].forEach(g => {
-    if (!g) return;
+    if (!g || g.winner == null) return;
     const w = teams[g.winner - 1];
     pts[w]++;
     if (g.time) winTimes[w].push(toSec(g.time));
   });
 
   let bonusTeam = null;
-  if (r.g1 && r.g2) {
+  if (r.g1 && r.g2 && r.g1.winner != null && r.g2.winner != null) {
     const minA = winTimes[teams[0]].length ? Math.min(...winTimes[teams[0]]) : Infinity;
     const minB = winTimes[teams[1]].length ? Math.min(...winTimes[teams[1]]) : Infinity;
     if      (minA < minB) { pts[teams[0]]++; bonusTeam = teams[0]; }
@@ -280,7 +286,7 @@ function buildStandings() {
     if (!res) return;
     m.teams.forEach(t => s[t].played++);
     [r.g1, r.g2].forEach(g => {
-      if (!g) return;
+      if (!g || g.winner == null) return;
       s[m.teams[g.winner - 1]].gw++;
       s[m.teams[2 - g.winner]].gl++;
     });
@@ -359,26 +365,32 @@ SCHED.forEach((wd, wi) => {
       ${scoreHtml}
     </div>`;
 
-    // ── Game rows (only when results exist) ──
-    if (res && r) {
+    // ── Game rows (shown when date or result exists) ──
+    const hasAnyGame = r && (r.g1 || r.g2);
+    if (hasAnyGame) {
       const gamesDiv = document.createElement('div');
       gamesDiv.className = 'mc-games';
 
       [r.g1, r.g2].forEach((g, gi) => {
         if (!g) return;
-        const winner = m[g.winner - 1];
-        const isBonus = res.bonusTeam === winner && g.time &&
+        const hasResult = g.winner != null;
+        const winner = hasResult ? m[g.winner - 1] : null;
+        const isBonus = hasResult && res && res.bonusTeam === winner && g.time &&
           toSec(g.time) === Math.min(...res.winTimes[winner]);
         const aWon = g.winner === 1;
+
+        const leftCls  = hasResult ? (aWon  ? 'g-winner' : 'g-loser') : 'g-pending';
+        const rightCls = hasResult ? (!aWon ? 'g-winner' : 'g-loser') : 'g-pending';
 
         const row = document.createElement('div');
         row.className = 'mc-game';
         row.innerHTML = `
           <span class="g-num">Game ${gi + 1}</span>
-          <span class="${aWon ? 'g-winner' : 'g-loser'} g-team-left">チーム ${m[0]}</span>
+          <span class="g-date">${g.date || ''}</span>
+          <span class="${leftCls} g-team-left">チーム ${m[0]}</span>
           <span class="g-vs">vs</span>
-          <span class="${aWon ? 'g-loser' : 'g-winner'}">チーム ${m[1]}</span>
-          <span class="g-time">${g.time}</span>
+          <span class="${rightCls}">チーム ${m[1]}</span>
+          <span class="g-time">${g.time || ''}</span>
           ${isBonus ? '<span class="g-bonus">TIME BONUS  +1 pt</span>' : ''}
         `;
         gamesDiv.appendChild(row);
