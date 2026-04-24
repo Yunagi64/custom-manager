@@ -387,7 +387,7 @@ const PLAYERS = [
   { name:'ぱと',    rankClass:'emerald', rankName:'Emerald',     pt:6 },
   { name:'ゆぶん',  rankClass:'gold',    rankName:'Gold',        pt:4 },
   { name:'とり',    rankClass:'gm',      rankName:'GrandMaster', pt:9 },
-  { name:'せな',    rankClass:'bronze',  rankName:'Bronze',      pt:2 },
+  { name:'ぜろすと', rankClass:'iron',    rankName:'Iron',        pt:1 },
   { name:'すし',    rankClass:'gold',    rankName:'Gold',        pt:4 },
   { name:'れーにん',rankClass:'silver',  rankName:'Silver',      pt:3 },
   { name:'えと',    rankClass:'plat',    rankName:'Platinum',    pt:5 },
@@ -405,7 +405,7 @@ const PLAYERS = [
   { name:'こね',    rankClass:'master',  rankName:'Master',      pt:8 },
   { name:'ふぃーと',rankClass:'emerald', rankName:'Emerald',     pt:6 },
   { name:'七海',    rankClass:'emerald', rankName:'Emerald',     pt:6 },
-  { name:'あき',    rankClass:'bronze',  rankName:'Bronze',      pt:2 },
+  { name:'にき',    rankClass:'iron',    rankName:'Iron',        pt:1 },
   { name:'しげちー',rankClass:'plat',    rankName:'Platinum',    pt:5 },
   { name:'しゃけ',  rankClass:'gm',      rankName:'GrandMaster', pt:9 },
   { name:'ゆよん',  rankClass:'plat',    rankName:'Platinum',    pt:5 },
@@ -416,7 +416,7 @@ const PLAYERS = [
   { name:'たっきょ', rankClass:'silver', rankName:'Silver',      pt:3 },
 ];
 
-const LEADERS = new Set(['うまる','あきつき','うなぎ','そや','すし','jaki']);
+const LEADERS = new Set(['うまる','あきつき','うなぎ','えび','すし','jaki']);
 const ROLES = ['top','jg','mid','adc','sup'];
 const TEAMS = 6;
 const TEAM_NAMES = ['A','B','C','D','E','F'];
@@ -532,9 +532,9 @@ function updateUnassignedCount() {
 
 const TEAM_ASSIGNMENTS = [
   { top: 'しおたつ', jg: 'ゆぶん',   mid: 'うまる',   adc: 'らき',    sup: 'えと'    },
-  { top: 'ぱと',    jg: 'あき',     mid: 'うなぎ',   adc: 'ブライト', sup: 'くろあ'  },
+  { top: 'ぱと',    jg: 'にき',     mid: 'うなぎ',   adc: 'ブライト', sup: 'くろあ'  },
   { top: 'ふぃーと', jg: 'とり',     mid: '社長',     adc: 'ゆよん',  sup: 'すし'    },
-  { top: '七海',    jg: 'せな',     mid: 'れーにん', adc: 'こね',    sup: 'あきつき' },
+  { top: '七海',    jg: 'ぜろすと', mid: 'れーにん', adc: 'こね',    sup: 'あきつき' },
   { top: 'そや',    jg: 'なぎ',     mid: 'しげちー', adc: 'しゃけ',  sup: 'えび'    },
   { top: 'いろみや', jg: 'しら',    mid: 'jaki',    adc: 'あずにゃん', sup: 'たっきょ' },
 ];
