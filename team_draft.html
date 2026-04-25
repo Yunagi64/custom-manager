@@ -343,6 +343,32 @@
   }
   .nav-btn:hover { background: #222428; color: #999; border-color: #383838; }
   .nav-btn.active { background: #1e2530; color: #88b8e8; border-color: #2a4060; cursor: default; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    body { padding: 1.5rem 0.75rem 5rem; }
+
+    header { margin-bottom: 1.5rem; }
+    header p { font-size: 20px; letter-spacing: 0.05em; }
+
+    .unassigned-section { margin-bottom: 1.5rem; }
+
+    /* チームグリッド: 1列 */
+    .team-grid { grid-template-columns: 1fr; }
+
+    /* ロールスロット: パディング縮小 */
+    .role-slot { padding: 7px 12px; gap: 8px; }
+    .team-header { padding: 12px 14px 10px; }
+
+    /* トグルパネル: 小型化 */
+    .toggle-panel { bottom: 0.75rem; right: 0.75rem; gap: 6px; }
+    .toggle-label { min-width: 56px; font-size: 9px; }
+    .toggle-row { padding: 6px 10px 6px 10px; gap: 8px; }
+  }
+
+  @media (min-width: 641px) and (max-width: 900px) {
+    .team-grid { grid-template-columns: repeat(2, 1fr); }
+  }
 </style>
 </head>
 <body>

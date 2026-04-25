@@ -111,6 +111,13 @@
     background: #1e1c10; border: 1px solid #3a3010;
     border-radius: 2px; padding: 1px 6px;
   }
+  .g-bonus-team {
+    color: #e0c040;
+    font-size: 9px;
+    font-weight: 500;
+    margin-right: 5px;
+    letter-spacing: 0.05em;
+  }
 
   /* ── Final ── */
   .final-block { margin-bottom: 3rem; }
@@ -171,6 +178,61 @@
   .nav-btn:hover { background: #222428; color: #999; border-color: #383838; }
   .nav-btn.active { background: #1e2530; color: #88b8e8; border-color: #2a4060; cursor: default; }
 
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    body { padding: 1.5rem 0.75rem 3rem; }
+
+    header { margin-bottom: 1.5rem; }
+    header p { font-size: 20px; letter-spacing: 0.05em; }
+
+    /* 順位表: 試合数列を非表示 */
+    .standings-head,
+    .standings-row { grid-template-columns: 24px 1fr 44px 56px; padding: 8px 12px; }
+    .s-played, .standings-head span:last-child { display: none; }
+
+    /* 週ヘッダー */
+    .week-header { grid-template-columns: 50px 1fr auto; padding: 8px 12px; gap: 8px; }
+    .mc-header { padding: 9px 12px; gap: 8px; }
+
+    /* ゲーム行: 2行レイアウト
+       Row1(meta): Game N · 日時 ·········· 試合時間
+       Row2(main): チームA ── vs ── チームF  (勝敗色で一目瞭然)
+       Row3:       TIME BONUS +1 pt         */
+    .mc-games { padding: 4px 12px 8px; }
+    .mc-game {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      column-gap: 6px;
+      row-gap: 1px;
+      padding: 7px 0;
+    }
+    /* Row1: meta */
+    .g-num  { order: 1; font-size: 9px; color: #3a3a40; letter-spacing: 0.08em; }
+    .g-date { order: 2; font-size: 9px; color: #484850; flex: 1; }
+    .g-time { order: 3; font-size: 10px; color: #4a4a50; }
+    /* 改行 */
+    .mc-game::before { content: ''; width: 100%; order: 4; }
+    /* Row2: teams */
+    .g-team-left             { order: 5; flex: 1; text-align: right; font-size: 13px; }
+    .g-vs                    { order: 6; font-size: 9px; color: #303035; padding: 0 2px; }
+    .mc-game > span:nth-child(5) { order: 7; flex: 1; font-size: 13px; }
+    /* Row3: ::after で改行し、バッジをコンパクト表示 */
+    .mc-game::after  { content: ''; width: 100%; order: 8; }
+    .g-bonus { order: 9; padding-left: 6px; margin-top: 1px; }
+
+    /* チーム別グリッド: 1列 */
+    .team-grid { grid-template-columns: 1fr; }
+
+    /* 決勝カード */
+    .final-card { padding: 16px 14px; gap: 8px; }
+    .final-team { font-size: 13px; }
+  }
+
+  @media (min-width: 641px) and (max-width: 900px) {
+    .team-grid { grid-template-columns: repeat(2, 1fr); }
+    .mc-game { grid-template-columns: 40px 100px 70px 18px 70px 48px 1fr; }
+  }
 
 </style>
 </head>
@@ -214,6 +276,7 @@ const RESULTS = {
   3: { g1: { winner: 2, time: '41:48', date: '4/7（木） 22:00～' }, g2: { winner: 1, time: '40:26', date: '4/11（土） 23:30～' } },
   4: { g1: { winner: 1, time: '33:44', date: '4/18（土） 22:00～' }, g2: { winner: 2, time: '29:59', date: '4/18（土） 23:00～' } },
   6: { g1: { winner: 1, time: '30:09', date: '4/23（木） 22:00～' }, g2: { date: '未定' } },
+  7: { g1: { date: '4/26（日） 21:00～' }, g2: { date: '4/26（日） 22:00～' } },
 };
 // ════════════════════════════════════════════════════════
 
@@ -394,7 +457,7 @@ SCHED.forEach((wd, wi) => {
           <span class="g-vs">vs</span>
           <span class="${rightCls}">チーム ${m[1]}</span>
           <span class="g-time">${g.time || ''}</span>
-          ${isBonus ? '<span class="g-bonus">TIME BONUS  +1 pt</span>' : ''}
+          ${isBonus ? `<span class="g-bonus"><span class="g-bonus-team">チーム ${winner}</span> TIME BONUS +1 pt</span>` : ''}
         `;
         gamesDiv.appendChild(row);
       });
