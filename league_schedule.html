@@ -104,7 +104,8 @@
   .g-team-left { text-align: right; }
   .g-vs     { font-size: 9px; color: #252525; text-align: center; }
   .g-time   { font-size: 11px; color: #4a4a4e; font-variant-numeric: tabular-nums; }
-  .g-date   { font-size: 10px; color: #484848; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .g-date     { font-size: 10px; color: #484848; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .g-date-tbd { font-size: 10px; color: #c07840; white-space: nowrap; letter-spacing: 0.05em; }
   .g-bonus {
     justify-self: start; padding-left: 10px;
     font-size: 8px; letter-spacing: 0.1em; color: #c0a020;
@@ -122,22 +123,27 @@
   /* ── Final ── */
   .final-block { margin-bottom: 3rem; }
   .final-header {
-    display: grid; grid-template-columns: 60px 1fr; align-items: center; gap: 12px;
-    background: #1a1e2a; border: 1px solid #2a3a5a; border-bottom: none;
+    display: grid; grid-template-columns: 60px 1fr auto; align-items: center; gap: 12px;
+    background: #161718; border: 1px solid #222426; border-bottom: none;
     border-radius: 4px 4px 0 0; padding: 10px 16px;
   }
-  .final-label { font-size: 10px; letter-spacing: 0.2em; color: #5a80b8; text-transform: uppercase; }
-  .final-date { font-size: 12px; color: #6890d8; }
+  .final-label { font-size: 10px; letter-spacing: 0.2em; color: #3a4050; text-transform: uppercase; }
+  .final-date { font-size: 12px; color: #3a4050; }
+  .cancelled-tag {
+    font-size: 8px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase;
+    color: #a04030; background: #1e1210; border: 1px solid #4a2018;
+    border-radius: 2px; padding: 2px 7px;
+  }
   .final-card {
-    background: #16171a; border: 1px solid #2a3a5a; border-radius: 0 0 4px 4px;
+    background: #141516; border: 1px solid #222426; border-radius: 0 0 4px 4px;
     padding: 24px 20px; display: grid; grid-template-columns: 1fr 48px 1fr; align-items: center; gap: 12px;
   }
-  .final-team { font-size: 15px; font-weight: 300; color: #c0bdb6; }
+  .final-team { font-size: 15px; font-weight: 300; color: #383838; text-decoration: line-through; text-decoration-color: #2e2e2e; }
   .final-team.right { text-align: right; }
-  .final-sub { font-size: 10px; color: #444; letter-spacing: 0.08em; margin-top: 4px; }
+  .final-sub { font-size: 10px; color: #2a2a2a; letter-spacing: 0.08em; margin-top: 4px; }
   .final-sub.right { text-align: right; }
   .final-vs-col { text-align: center; }
-  .final-vs { font-size: 12px; color: #2a3a5a; letter-spacing: 0.1em; }
+  .final-vs { font-size: 12px; color: #222426; letter-spacing: 0.1em; }
 
   /* ── Team schedule ── */
   .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 3rem; }
@@ -277,11 +283,15 @@ const RESULTS = {
   4: { g1: { winner: 1, time: '33:44', date: '4/18（土） 22:00～' }, g2: { winner: 2, time: '29:59', date: '4/18（土） 23:00～' } },
   5: { g1: { winner: 2, time: '24:00', date: '4/30（木） 22:00～' }, g2: { winner: 2, time: '35:10', date: '4/30（木） 23:00～' } },
   6: { g1: { winner: 1, time: '30:09', date: '4/23（木） 22:00～' }, g2: { winner: 1, time: '29:14', date: '5/26（火） 22:00～' } },
+  7: { g1: { date: '未定' }, g2: { date: '未定' } },
   8: { g1: { winner: 2, time: '23:16', date: '4/29（水） 20:00～' }, g2: { winner: 2, time: '46:56', date: '4/29（水） 21:00～' } },
-  11: { g1: { date: '5/28（木） 22:00～' }, g2: { date: '5/28（木） 23:00～' } },
+  9: { g1: { date: '未定' }, g2: { date: '未定' } },
+  10: { g1: { date: '未定' }, g2: { date: '未定' } },
+  11: { g1: { date: '未定' }, g2: { date: '未定' } },
   12: { g1: { winner: 1, time: '25:41', date: '5/12（火） 22:00～' }, g2: { winner: 1, time: '31:54', date: '5/12（火） 23:00～' } },
   13: { g1: { winner: 2, time: '35:54', date: '5/24（日） 21:00～' }, g2: { winner: 2, time: '32:08', date: '5/24（日） 22:00～' } },
   14: { g1: { winner: 2, time: '35:18', date: '5/22（金） 22:00～' }, g2: { date: '未定' } },
+  15: { g1: { date: '未定' }, g2: { date: '未定' } },
 };
 // ════════════════════════════════════════════════════════
 
@@ -457,7 +467,7 @@ SCHED.forEach((wd, wi) => {
         row.className = 'mc-game';
         row.innerHTML = `
           <span class="g-num">Game ${gi + 1}</span>
-          <span class="g-date">${g.date || ''}</span>
+          <span class="${g.date === '未定' ? 'g-date-tbd' : 'g-date'}">${g.date || ''}</span>
           <span class="${leftCls} g-team-left">チーム ${m[0]}</span>
           <span class="g-vs">vs</span>
           <span class="${rightCls}">チーム ${m[1]}</span>
@@ -486,6 +496,7 @@ finalDiv.insertAdjacentHTML('beforeend', `
   <div class="final-header">
     <span class="final-label">決勝</span>
     <span class="final-date">${fmt(finalDay)}</span>
+    <span class="cancelled-tag">Cancelled</span>
   </div>
   <div class="final-card">
     <div>
